@@ -1,0 +1,28 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "description": "Server酱 MCP Server - 通过 Server酱 API 向微信发送推送消息",
+  "name": "io.github.BigLazyET/ms-mcp-research",
+  "version": "0.1.0-beta",
+  "packages": [
+    {
+      "registryType": "nuget",
+      "identifier": "EtServerChan.McpServer",
+      "version": "0.1.0-beta",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [],
+      "environmentVariables": [
+        {
+          "name": "SERVERCHAN_KEY",
+          "description": "Server酱的 SendKey，用于调用推送 API。请在 https://sct.ftqq.com/ 获取",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/BigLazyET/ms-mcp-research",
+    "source": "github"
+  }
+}

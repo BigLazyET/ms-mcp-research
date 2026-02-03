@@ -36,7 +36,7 @@ To test this MCP server from source code (locally) without using a built MCP ser
 ```json
 {
   "servers": {
-    "MyMcpServer": {
+    "EtServerChan.McpServer": {
       "type": "stdio",
       "command": "dotnet",
       "args": [
@@ -56,7 +56,7 @@ Refer to the VS Code or Visual Studio documentation for more information on conf
 
 ## Testing the MCP Server
 
-Once configured, you can ask Copilot Chat for a random number, for example, `Give me 3 random numbers`. It should prompt you to use the `get_random_number` tool on the `MyMcpServer` MCP server and show you the results.
+Once configured, you can ask Copilot Chat for a random number, for example, `Give me 3 random numbers`. It should prompt you to use the `get_random_number` tool on the `EtServerChan.McpServer` MCP server and show you the results.
 
 ## Publishing to NuGet.org
 
@@ -75,7 +75,7 @@ For both VS Code and Visual Studio, the configuration file uses the following se
 ```json
 {
   "servers": {
-    "MyMcpServer": {
+    "EtServerChan.McpServer": {
       "type": "stdio",
       "command": "dnx",
       "args": [
