@@ -51,6 +51,7 @@ jobs:
           include-prerelease: true
 
       - name: Publish
+        shell: bash
         run: |
           dotnet publish $PROJECT \
             -c $CONFIGURATION \
