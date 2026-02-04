@@ -6,6 +6,7 @@
   "packages": [
     {
       "registryType": "nuget",
+      "registryBaseUrl": "https://api.nuget.org",
       "identifier": "EtServerChan.McpServer",
       "version": "0.1.0-beta",
       "transport": {
@@ -16,7 +17,8 @@
         {
           "name": "SERVERCHAN_KEY",
           "description": "Server酱的 SendKey，用于调用推送 API。请在 https://sct.ftqq.com/ 获取",
-          "required": true
+          "required": true,
+          "isSecret": true
         }
       ]
     }
