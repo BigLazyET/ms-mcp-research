@@ -1,4 +1,4 @@
-name: Build & Pack MCP Server Tool
+name: Dropped (Do not use!)
 
 on:
   workflow_dispatch:
