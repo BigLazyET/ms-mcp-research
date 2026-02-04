@@ -1,7 +1,11 @@
+using System.Text;
 using EtServerChan.McpServer.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
+Console.InputEncoding = Encoding.UTF8;
+Console.OutputEncoding = Encoding.UTF8;
 
 var builder = Host.CreateApplicationBuilder(args);
 
