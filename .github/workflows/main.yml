@@ -18,6 +18,9 @@ env:
   PROJECT: src/${{ inputs.projectName }}/${{ inputs.projectName }}.csproj
   PACKAGE_VERSION: ${{ inputs.packageVersion }}
 
+# ------------------------------------------------------------
+# Publish jobs (all glibc + Windows + macOS)
+# ------------------------------------------------------------
 jobs:
   publish:
     name: Publish ${{ matrix.rid }}
@@ -45,6 +48,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+          include-prerelease: true
 
       - name: Publish
         run: |
@@ -54,13 +58,16 @@ jobs:
             --self-contained true \
             -p:PublishSingleFile=true \
             -p:PackageVersion=$PACKAGE_VERSION \
-            -o publish/${{ matrix.rid }}
+            -o src/${{ inputs.projectName }}/bin/Release/net10.0/${{ matrix.rid }}/publish
 
       - uses: actions/upload-artifact@v4
         with:
           name: publish-${{ matrix.rid }}
-          path: publish/${{ matrix.rid }}
+          path: src/${{ inputs.projectName }}/bin/Release/net10.0/${{ matrix.rid }}/publish
 
+# ------------------------------------------------------------
+# Publish linux-musl-x64 (Alpine)
+# ------------------------------------------------------------
   publish-musl:
     name: Publish linux-musl-x64
     runs-on: ubuntu-latest
@@ -73,18 +80,21 @@ jobs:
       - name: Publish (musl)
         run: |
           dotnet publish $PROJECT \
-            -c Release \
+            -c $CONFIGURATION \
             -r linux-musl-x64 \
             --self-contained true \
             -p:PublishSingleFile=true \
             -p:PackageVersion=$PACKAGE_VERSION \
-            -o publish/linux-musl-x64
+            -o src/${{ inputs.projectName }}/bin/Release/net10.0/linux-musl-x64/publish
 
       - uses: actions/upload-artifact@v4
         with:
           name: publish-linux-musl-x64
-          path: publish/linux-musl-x64
+          path: src/${{ inputs.projectName }}/bin/Release/net10.0/linux-musl-x64/publish
 
+# ------------------------------------------------------------
+# Pack & Validate
+# ------------------------------------------------------------
   pack:
     name: Pack & Validate NuGet
     runs-on: ubuntu-latest
@@ -96,11 +106,40 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+          include-prerelease: true
+
+      # ---------- download publish outputs ----------
+      - uses: actions/download-artifact@v4
+        with:
+          name: publish-win-x64
+          path: src/${{ inputs.projectName }}/bin/Release/net10.0/win-x64/publish
 
       - uses: actions/download-artifact@v4
         with:
-          path: publish
+          name: publish-win-arm64
+          path: src/${{ inputs.projectName }}/bin/Release/net10.0/win-arm64/publish
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: publish-linux-x64
+          path: src/${{ inputs.projectName }}/bin/Release/net10.0/linux-x64/publish
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: publish-linux-arm64
+          path: src/${{ inputs.projectName }}/bin/Release/net10.0/linux-arm64/publish
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: publish-linux-musl-x64
+          path: src/${{ inputs.projectName }}/bin/Release/net10.0/linux-musl-x64/publish
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: publish-osx-arm64
+          path: src/${{ inputs.projectName }}/bin/Release/net10.0/osx-arm64/publish
+
+      # ---------- pack ----------
       - name: Pack
         run: |
           dotnet pack $PROJECT \
@@ -109,27 +148,29 @@ jobs:
             -p:PackageVersion=$PACKAGE_VERSION \
             -o artifacts
 
+      # ---------- validate nupkg ----------
       - name: Validate NuGet layout
         run: |
           unzip artifacts/*.nupkg -d nupkg-check
+
           for rid in win-x64 win-arm64 linux-x64 linux-arm64 linux-musl-x64 osx-arm64; do
-            test -d "nupkg-check/tools/net10.0/$rid" || exit 1
+            dir="nupkg-check/tools/net10.0/$rid"
+            echo "Checking $dir"
+            test -d "$dir" || exit 1
+            test "$(ls -A $dir)" || exit 1
           done
 
+      # ---------- GitHub Release ----------
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          version: $PACKAGE_VERSION   # ← 手动指定
-          files: |
-            artifacts/**
+          tag_name: v${{ env.PACKAGE_VERSION }}
+          name: v${{ env.PACKAGE_VERSION }}
+          files: artifacts/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # - uses: actions/upload-artifact@v4
-      #   with:
-      #     name: nuget
-      #     path: artifacts/*.nupkg
-
+      # ---------- optional NuGet push ----------
       # - name: Push to NuGet.org
       #   run: |
       #     dotnet nuget push artifacts/*.nupkg \
